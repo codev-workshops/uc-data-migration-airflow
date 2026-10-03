@@ -34,4 +34,19 @@ Go to Admin -> Connections and Edit "postgres_default" set this values (equivale
 - Login : postgres
 - Password : postgres
 
+## SAS macro migration DAGs
+
+`dags/` contains Airflow DAGs that replicate the data-transformation macros from
+`ts-sas-legacy-analytics/Macro/`: `sas_export_csv`, `sas_transpose`,
+`sas_subset_data`, `sas_compare` and `sas_dedup_string`. Each runs
+`extract >> <macro> >> validate`, where `validate` reconciles row counts and
+checksums between input and output. Macro parameters can be overridden with
+`dag_run.conf`, e.g.
+
+    airflow dags trigger sas_subset_data -c '{"obs": "1-5 or 11-15", "keep": "_ALL_"}'
+
+Run artefacts are written to `data/work/<dag_id>/<run_id>/`. Sample inputs live in
+`data/sample/` (regenerate with `python data/sample/generate_samples.py <path to ts-sas-legacy-analytics/Data/csv>`).
+Unit tests: `python -m pytest tests`. See [ETL_MIGRATION_NOTES.md](ETL_MIGRATION_NOTES.md) for translation decisions.
+
 Enjoy!
